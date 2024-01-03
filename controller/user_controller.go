@@ -25,6 +25,7 @@ func NewUserController(uu usecase.IUserUsecase) IUserController {
 
 func (uc *userController) SignUp(c echo.Context) error {
 	user := model.User{}
+	// NOTE: c.Bindでリクエストボディを構造体にバインド
 	if err := c.Bind(&user); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
@@ -37,6 +38,7 @@ func (uc *userController) SignUp(c echo.Context) error {
 
 func (uc *userController) LogIn(c echo.Context) error {
 	user := model.User{}
+	// NOTE: c.Bindでリクエストボディを構造体にバインド
 	if err := c.Bind(&user); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
