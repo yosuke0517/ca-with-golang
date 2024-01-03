@@ -4,6 +4,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"go-rest-api/model"
 	"go-rest-api/repository"
+	"go-rest-api/validator"
 	"os"
 	"time"
 
@@ -17,15 +18,18 @@ type IUserUsecase interface {
 
 type userUsecase struct {
 	ur repository.IUserRepository
+	uv validator.IUserValidator
 }
 
 // NewUserUsecase はIUserUsecaseを実装した構造体を返す（DI）
-func NewUserUsecase(ur repository.IUserRepository) IUserUsecase {
-	return &userUsecase{ur}
+func NewUserUsecase(ur repository.IUserRepository, uv validator.IUserValidator) IUserUsecase {
+	return &userUsecase{ur, uv}
 }
 
 func (uu *userUsecase) SignUp(user model.User) (model.UserResponse, error) {
-	// TODO バリデーション
+	if err := uu.uv.UserValidate(user); err != nil {
+		return model.UserResponse{}, err
+	}
 	// パスワードのハッシュ化
 	hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), 10)
 	if err != nil {
@@ -43,7 +47,9 @@ func (uu *userUsecase) SignUp(user model.User) (model.UserResponse, error) {
 }
 
 func (uu *userUsecase) Login(user model.User) (string, error) {
-	// TODO バリデーション
+	if err := uu.uv.UserValidate(user); err != nil {
+		return "", err
+	}
 	storedUser := model.User{}
 	if err := uu.ur.GetUserByEmail(&storedUser, user.Email); err != nil {
 		return "", err
